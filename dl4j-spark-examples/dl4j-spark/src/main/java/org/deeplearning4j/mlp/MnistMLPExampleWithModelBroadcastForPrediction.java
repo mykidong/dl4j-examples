@@ -84,7 +84,7 @@ public class MnistMLPExampleWithModelBroadcastForPrediction {
         Broadcast<MultiLayerNetwork> broadcastModel = sc.broadcast(restored);
 
 
-        log.info("***** Predict dataset *****");
+        log.info("***** Predict unlabelled dataset *****");
         unLabelledData.foreach(new Predict(broadcastModel));
     }
 
