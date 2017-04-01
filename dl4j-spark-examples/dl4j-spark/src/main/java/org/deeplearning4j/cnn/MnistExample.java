@@ -49,9 +49,13 @@ public class MnistExample {
         DataSetIterator mnistTest = new MnistDataSetIterator(32, false, 12345);
         List<DataSet> trainData = new ArrayList<>();
         List<DataSet> testData = new ArrayList<>();
-        while (mnistTrain.hasNext()) trainData.add(mnistTrain.next());
+        while (mnistTrain.hasNext())
+            trainData.add(mnistTrain.next());
+
         Collections.shuffle(trainData, new Random(12345));
-        while (mnistTest.hasNext()) testData.add(mnistTest.next());
+
+        while (mnistTest.hasNext())
+            testData.add(mnistTest.next());
 
         //Get training data. Note that using parallelize isn't recommended for real problems
         JavaRDD<DataSet> train = sc.parallelize(trainData);

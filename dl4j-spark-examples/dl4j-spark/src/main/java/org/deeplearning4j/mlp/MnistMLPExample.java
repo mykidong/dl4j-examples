@@ -6,6 +6,7 @@ import com.beust.jcommander.ParameterException;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.broadcast.Broadcast;
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -14,10 +15,12 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.spark.api.TrainingMaster;
 import org.deeplearning4j.spark.impl.multilayer.SparkDl4jMultiLayer;
 import org.deeplearning4j.spark.impl.paramavg.ParameterAveragingTrainingMaster;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -25,6 +28,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -131,8 +135,22 @@ public class MnistMLPExample {
             log.info("Completed Epoch {}", i);
         }
 
+
+        log.info("***** Save the model *****");
+        //Save the model
+        File locationToSave = new File("target/mnist-model.zip");      //Where to save the network. Note: the file is in .zip format - can be opened externally
+        boolean saveUpdater = true;                                             //Updater: i.e., the state for Momentum, RMSProp, Adagrad etc. Save this if you want to train your network more in the future
+        ModelSerializer.writeModel(sparkNet.getNetwork(), locationToSave, saveUpdater);
+
+        log.info("***** Load the model *****");
+        //Load the model
+        MultiLayerNetwork restored = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
+
+        SparkDl4jMultiLayer sparkNetRestored = new SparkDl4jMultiLayer(sc, conf, tm);
+        sparkNetRestored.setNetwork(restored);
+
         //Perform evaluation (distributed)
-        Evaluation evaluation = sparkNet.evaluate(testData);
+        Evaluation evaluation = sparkNetRestored.evaluate(testData);
         log.info("***** Evaluation *****");
         log.info(evaluation.stats());
 
