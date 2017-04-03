@@ -11,6 +11,7 @@ import org.apache.spark.broadcast.Broadcast;
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.slf4j.Logger;
@@ -98,10 +99,10 @@ public class MnistMLPExampleWithModelBroadcastForPrediction {
 
         @Override
         public void call(DataSet dataSet) throws Exception {
-            // TODO: This way is correct???????
-            int[] predicted = broadcastModel.getValue().predict(dataSet.getFeatures());
 
-            System.out.println("predicted: " + Arrays.toString(predicted));
+            INDArray predicted = broadcastModel.getValue().output(dataSet.getFeatureMatrix(), false);
+
+            System.out.println("predicted: " + predicted.toString());
         }
     }
 }
